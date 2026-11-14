@@ -34,6 +34,17 @@ export function PostsPanel({ user, localPosts, onPublish }: PostsPanelProps) {
   return (
     <section className="panel posts" aria-labelledby="posts-title">
       <h2 id="posts-title">Publicaciones de {user.name}</h2>
+      {pageCount > 1 && (
+        <nav className="pagination" aria-label="Paginación de publicaciones">
+          <button type="button" disabled={page === 1} onClick={() => goToPage(page - 1)}>
+            Anterior
+          </button>
+          <span role="status">Página {page} de {pageCount}</span>
+          <button type="button" disabled={page === pageCount} onClick={() => goToPage(page + 1)}>
+            Siguiente
+          </button>
+        </nav>
+      )}
       <PostForm onPublish={(fields) => onPublish({ ...fields, userId: user.id })} />
       {resource.status === 'loading' && <p role="status">Cargando publicaciones…</p>}
       {resource.status === 'error' && (
@@ -47,17 +58,6 @@ export function PostsPanel({ user, localPosts, onPublish }: PostsPanelProps) {
             </li>
           ))}
         </ul>
-      )}
-      {pageCount > 1 && (
-        <nav className="pagination" aria-label="Paginación de publicaciones">
-          <button type="button" disabled={page === 1} onClick={() => goToPage(page - 1)}>
-            Anterior
-          </button>
-          <span role="status">Página {page} de {pageCount}</span>
-          <button type="button" disabled={page === pageCount} onClick={() => goToPage(page + 1)}>
-            Siguiente
-          </button>
-        </nav>
       )}
       {resource.status === 'success' && posts.length === 0 && (
         <p>Este usuario todavía no tiene publicaciones.</p>
