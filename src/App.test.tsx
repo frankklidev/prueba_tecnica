@@ -119,3 +119,42 @@ test('conserva el contenido del formulario si falla el envío', async () => {
   await waitFor(() => expect(title).toHaveValue(''));
   expect(screen.getByRole('heading', { name: 'Borrador' })).toBeVisible();
 });
+
+test('pagina las publicaciones y vuelve a la primera página al publicar', async () => {
+  const defaultFetch = fetchMock.getMockImplementation()!;
+  fetchMock.mockImplementation((input, options) => {
+    if (String(input).endsWith('/users/1/posts')) {
+      return Promise.resolve(json(Array.from({ length: 6 }, (_, index) => ({
+        id: index + 1,
+        userId: 1,
+        title: `Entrada ${index + 1}`,
+        body: 'Texto de la entrada',
+      }))));
+    }
+    return defaultFetch(input, options);
+  });
+
+  render(<App />);
+  const user = await selectUser();
+  await screen.findByRole('heading', { name: 'Entrada 1' });
+  const previous = screen.getByRole('button', { name: 'Anterior' });
+  const next = screen.getByRole('button', { name: 'Siguiente' });
+  expect(previous).toBeDisabled();
+  expect(screen.getAllByRole('article')).toHaveLength(5);
+
+  await user.click(next);
+  expect(screen.getByText('Página 2 de 2')).toBeVisible();
+  expect(next).toBeDisabled();
+  expect(screen.getAllByRole('article')).toHaveLength(1);
+  expect(screen.getByRole('heading', { name: 'Entrada 6' })).toBeVisible();
+
+  await user.click(previous);
+  expect(screen.getByText('Página 1 de 2')).toBeVisible();
+  await user.click(next);
+  await user.type(screen.getByRole('textbox', { name: 'Título' }), 'Entrada nueva');
+  await user.type(screen.getByRole('textbox', { name: 'Texto' }), 'Texto de prueba');
+  await user.click(screen.getByRole('button', { name: 'Publicar' }));
+  expect(await screen.findByRole('heading', { name: 'Entrada nueva' })).toBeVisible();
+  expect(screen.getByText('Página 1 de 2')).toBeVisible();
+  expect(screen.getAllByRole('article')).toHaveLength(5);
+});

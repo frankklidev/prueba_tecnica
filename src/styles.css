@@ -53,6 +53,12 @@ textarea { resize: vertical; }
 .post-list h3 { font-size: 1.05rem; }
 .post-list p { margin-top: .4rem; color: var(--muted); line-height: 1.55; white-space: pre-wrap; }
 
+.pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .65rem; margin-top: 1rem; }
+.pagination button { color: var(--accent); border: 1px solid #9eb4a8; background: white; border-radius: 8px; padding: .55rem .75rem; font-weight: 650; }
+.pagination button:hover:not(:disabled) { background: #e0f1e8; }
+.pagination button:disabled { cursor: default; }
+.pagination span { color: var(--muted); font-size: .9rem; }
+
 @media (max-width: 680px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
   .users { max-height: 17rem; overflow: auto; padding: .25rem; }
