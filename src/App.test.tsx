@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import App from './App';
@@ -158,4 +158,36 @@ test('pagina las publicaciones y vuelve a la primera página al publicar', async
   expect(await screen.findByRole('heading', { name: 'Entrada nueva' })).toBeVisible();
   expect(screen.getByText('Página 1 de 2')).toBeVisible();
   expect(screen.getAllByRole('article')).toHaveLength(5);
+});
+
+test('muestra un error si la API devuelve usuarios con un formato inesperado', async () => {
+  fetchMock.mockResolvedValueOnce(json([{ id: 1, name: null }]));
+  render(<App gateway={jsonPlaceholder} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('No se pudieron cargar los usuarios.');
+});
+
+test('ignora una respuesta tardía del usuario anterior', async () => {
+  let finishFirstRequest!: (response: Response) => void;
+  const delayedResponse = new Promise<Response>((resolve) => {
+    finishFirstRequest = resolve;
+  });
+  const defaultFetch = fetchMock.getMockImplementation()!;
+  fetchMock.mockImplementation((input, options) => (
+    String(input).endsWith('/users/1/posts') ? delayedResponse : defaultFetch(input, options)
+  ));
+
+  render(<App gateway={jsonPlaceholder} />);
+  const user = await selectUser();
+  expect(screen.getByText('Cargando publicaciones…')).toBeVisible();
+  const firstRequest = fetchMock.mock.calls.find(([input]) => String(input).endsWith('/users/1/posts'));
+  await user.click(screen.getByRole('button', { name: /ervin/i }));
+  expect(await screen.findByText('Este usuario todavía no tiene publicaciones.')).toBeVisible();
+  expect(firstRequest?.[1]?.signal?.aborted).toBe(true);
+
+  await act(async () => {
+    finishFirstRequest(json([{ id: 1, userId: 1, title: 'Respuesta tardía', body: 'Texto' }]));
+  });
+
+  expect(screen.getByRole('heading', { name: 'Publicaciones de Ervin Howell' })).toBeVisible();
+  expect(screen.queryByRole('heading', { name: 'Respuesta tardía' })).not.toBeInTheDocument();
 });
