@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { getUsers, type User } from './api';
+import type { DirectoryGateway, User } from './directory';
 import { LoadError } from './LoadError';
 import { useResource } from './useResource';
 
 interface UserDirectoryProps {
+  loadUsers: DirectoryGateway['getUsers'];
   selectedId?: number;
   onSelect: (user: User) => void;
 }
@@ -12,8 +13,8 @@ function normalizeName(value: string) {
   return value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 }
 
-export function UserDirectory({ selectedId, onSelect }: UserDirectoryProps) {
-  const { resource, retry } = useResource(getUsers);
+export function UserDirectory({ loadUsers, selectedId, onSelect }: UserDirectoryProps) {
+  const { resource, retry } = useResource(loadUsers);
   const [query, setQuery] = useState('');
   const users = resource.status === 'success' ? resource.data : [];
   const matches = users.filter(({ name }) => normalizeName(name).includes(normalizeName(query)));

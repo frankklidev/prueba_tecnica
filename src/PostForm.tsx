@@ -1,10 +1,8 @@
 import { useRef, useState, type FormEvent } from 'react';
-import type { NewPost } from './api';
+import type { PostDraft } from './directory';
+const emptyFields: PostDraft = { title: '', body: '' };
 
-type PostFields = Pick<NewPost, 'title' | 'body'>;
-const emptyFields: PostFields = { title: '', body: '' };
-
-export function PostForm({ onPublish }: { onPublish: (fields: PostFields) => Promise<void> }) {
+export function PostForm({ onPublish }: { onPublish: (fields: PostDraft) => Promise<void> }) {
   const [fields, setFields] = useState(emptyFields);
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'error' | 'success'>('idle');

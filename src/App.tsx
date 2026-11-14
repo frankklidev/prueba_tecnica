@@ -1,16 +1,16 @@
 import { useRef, useState } from 'react';
-import { createPost, type NewPost, type Post, type User } from './api';
+import type { DirectoryGateway, NewPost, Post, User } from './directory';
 import { PostsPanel } from './PostsPanel';
 import { UserDirectory } from './UserDirectory';
 
-export default function App() {
+export default function App({ gateway }: { gateway: DirectoryGateway }) {
   const [selectedUser, setSelectedUser] = useState<User>();
 
   const nextLocalId = useRef(-1);
   const [localPosts, setLocalPosts] = useState<Post[]>([]);
 
   async function publish(post: NewPost) {
-    await createPost(post);
+    await gateway.createPost(post);
     // The API can return the same ID for every simulated creation.
     const localPost = { ...post, id: nextLocalId.current-- };
     setLocalPosts((previous) => [localPost, ...previous]);
@@ -23,11 +23,12 @@ export default function App() {
         <p>Busca un usuario para explorar sus publicaciones.</p>
       </header>
       <div className="layout">
-        <UserDirectory selectedId={selectedUser?.id} onSelect={setSelectedUser} />
+        <UserDirectory loadUsers={gateway.getUsers} selectedId={selectedUser?.id} onSelect={setSelectedUser} />
         {selectedUser ? (
           <PostsPanel
             key={selectedUser.id}
             user={selectedUser}
+            loadPosts={gateway.getPosts}
             localPosts={localPosts.filter((post) => post.userId === selectedUser.id)}
             onPublish={publish}
           />

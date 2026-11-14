@@ -3,6 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import App from './App';
+import { jsonPlaceholder } from './infrastructure/jsonPlaceholder';
 
 const users = [
   { id: 1, name: 'Leanne Graham', email: 'leanne@example.com' },
@@ -41,7 +42,7 @@ async function selectUser(name = /leanne graham/i) {
 }
 
 test('muestra la carga y filtra usuarios por nombre sin distinguir acentos ni mayúsculas', async () => {
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   expect(screen.getByRole('status')).toHaveTextContent('Cargando usuarios');
   await screen.findByRole('button', { name: /ervin/i });
   const user = userEvent.setup();
@@ -51,7 +52,7 @@ test('muestra la carga y filtra usuarios por nombre sin distinguir acentos ni ma
 });
 
 test('carga las publicaciones del usuario elegido', async () => {
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   await selectUser();
   expect(await screen.findByRole('heading', { name: 'Publicación original' })).toBeVisible();
   expect(fetchMock).toHaveBeenCalledWith(
@@ -61,7 +62,7 @@ test('carga las publicaciones del usuario elegido', async () => {
 });
 
 test('rechaza espacios en blanco y enfoca el primer campo inválido', async () => {
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   const user = await selectUser();
   const title = screen.getByRole('textbox', { name: 'Título' });
   await user.type(title, '   ');
@@ -75,7 +76,7 @@ test('rechaza espacios en blanco y enfoca el primer campo inválido', async () =
 });
 
 test('publica, actualiza la lista y mantiene la nueva entrada al volver al usuario', async () => {
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   const user = await selectUser();
   await user.type(screen.getByRole('textbox', { name: 'Título' }), ' Mi publicación ');
   await user.type(screen.getByRole('textbox', { name: 'Texto' }), ' Hola desde React ');
@@ -97,14 +98,14 @@ test('publica, actualiza la lista y mantiene la nueva entrada al volver al usuar
 
 test('informa un error HTTP al cargar usuarios y permite reintentar', async () => {
   fetchMock.mockResolvedValueOnce(json({}, 503));
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   expect(await screen.findByRole('alert')).toHaveTextContent('No se pudieron cargar los usuarios.');
   await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
   expect(await screen.findByRole('button', { name: /leanne/i })).toBeVisible();
 });
 
 test('conserva el contenido del formulario si falla el envío', async () => {
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   const user = await selectUser();
   await screen.findByRole('heading', { name: 'Publicación original' });
   fetchMock.mockResolvedValueOnce(json({}, 500));
@@ -134,7 +135,7 @@ test('pagina las publicaciones y vuelve a la primera página al publicar', async
     return defaultFetch(input, options);
   });
 
-  render(<App />);
+  render(<App gateway={jsonPlaceholder} />);
   const user = await selectUser();
   await screen.findByRole('heading', { name: 'Entrada 1' });
   const previous = screen.getByRole('button', { name: 'Anterior' });

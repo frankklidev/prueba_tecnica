@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { getPosts, type NewPost, type Post, type User } from './api';
+import type { DirectoryGateway, NewPost, Post, User } from './directory';
 import { LoadError } from './LoadError';
 import { PostForm } from './PostForm';
 import { useResource } from './useResource';
@@ -8,12 +8,13 @@ const POSTS_PER_PAGE = 5;
 
 interface PostsPanelProps {
   user: User;
+  loadPosts: DirectoryGateway['getPosts'];
   localPosts: Post[];
   onPublish: (post: NewPost) => Promise<void>;
 }
 
-export function PostsPanel({ user, localPosts, onPublish }: PostsPanelProps) {
-  const load = useCallback((signal: AbortSignal) => getPosts(user.id, signal), [user.id]);
+export function PostsPanel({ user, loadPosts, localPosts, onPublish }: PostsPanelProps) {
+  const load = useCallback((signal: AbortSignal) => loadPosts(user.id, signal), [loadPosts, user.id]);
   const { resource, retry } = useResource(load);
 
   const [pagination, setPagination] = useState<{ page: number; newestLocalId?: number }>({ page: 1 });
