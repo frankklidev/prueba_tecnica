@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
-import type { DirectoryGateway, NewPost, Post, User } from './directory';
-import { LoadError } from './LoadError';
+import type { DirectoryGateway, NewPost, Post, User } from '../../directory';
+import { LoadError } from '../../shared/LoadError';
+import { Pagination } from './Pagination';
 import { PostForm } from './PostForm';
-import { useResource } from './useResource';
+import { useResource } from '../../shared/useResource';
 
 const POSTS_PER_PAGE = 5;
 
@@ -35,17 +36,7 @@ export function PostsPanel({ user, loadPosts, localPosts, onPublish }: PostsPane
   return (
     <section className="panel posts" aria-labelledby="posts-title">
       <h2 id="posts-title">Publicaciones de {user.name}</h2>
-      {pageCount > 1 && (
-        <nav className="pagination" aria-label="Paginación de publicaciones">
-          <button type="button" disabled={page === 1} onClick={() => goToPage(page - 1)}>
-            Anterior
-          </button>
-          <span role="status">Página {page} de {pageCount}</span>
-          <button type="button" disabled={page === pageCount} onClick={() => goToPage(page + 1)}>
-            Siguiente
-          </button>
-        </nav>
-      )}
+      <Pagination page={page} pageCount={pageCount} onPageChange={goToPage} />
       <PostForm onPublish={(fields) => onPublish({ ...fields, userId: user.id })} />
       {resource.status === 'loading' && <p role="status">Cargando publicaciones…</p>}
       {resource.status === 'error' && (

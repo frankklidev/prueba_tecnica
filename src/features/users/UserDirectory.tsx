@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { DirectoryGateway, User } from './directory';
-import { LoadError } from './LoadError';
-import { useResource } from './useResource';
+import type { DirectoryGateway, User } from '../../directory';
+import { LoadError } from '../../shared/LoadError';
+import { useResource } from '../../shared/useResource';
 
 interface UserDirectoryProps {
   loadUsers: DirectoryGateway['getUsers'];
@@ -17,7 +17,8 @@ export function UserDirectory({ loadUsers, selectedId, onSelect }: UserDirectory
   const { resource, retry } = useResource(loadUsers);
   const [query, setQuery] = useState('');
   const users = resource.status === 'success' ? resource.data : [];
-  const matches = users.filter(({ name }) => normalizeName(name).includes(normalizeName(query)));
+  const normalizedQuery = normalizeName(query);
+  const matches = users.filter(({ name }) => normalizeName(name).includes(normalizedQuery));
 
   return (
     <section className="directory panel" aria-labelledby="directory-title">

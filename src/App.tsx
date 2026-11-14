@@ -1,20 +1,13 @@
-import { useRef, useState } from 'react';
-import type { DirectoryGateway, NewPost, Post, User } from './directory';
-import { PostsPanel } from './PostsPanel';
-import { UserDirectory } from './UserDirectory';
+import { useState } from 'react';
+import type { DirectoryGateway, User } from './directory';
+import { useLocalPosts } from './features/posts/useLocalPosts';
+import { PostsPanel } from './features/posts/PostsPanel';
+import { UserDirectory } from './features/users/UserDirectory';
 
 export default function App({ gateway }: { gateway: DirectoryGateway }) {
   const [selectedUser, setSelectedUser] = useState<User>();
 
-  const nextLocalId = useRef(-1);
-  const [localPosts, setLocalPosts] = useState<Post[]>([]);
-
-  async function publish(post: NewPost) {
-    await gateway.createPost(post);
-    // The API can return the same ID for every simulated creation.
-    const localPost = { ...post, id: nextLocalId.current-- };
-    setLocalPosts((previous) => [localPost, ...previous]);
-  }
+  const { postsFor, publish } = useLocalPosts(gateway.createPost);
 
   return (
     <main className="shell">
@@ -29,7 +22,7 @@ export default function App({ gateway }: { gateway: DirectoryGateway }) {
             key={selectedUser.id}
             user={selectedUser}
             loadPosts={gateway.getPosts}
-            localPosts={localPosts.filter((post) => post.userId === selectedUser.id)}
+            localPosts={postsFor(selectedUser.id)}
             onPublish={publish}
           />
         ) : (

@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import type { PostDraft } from './directory';
+import type { PostDraft } from '../../directory';
 const emptyFields: PostDraft = { title: '', body: '' };
 
 export function PostForm({ onPublish }: { onPublish: (fields: PostDraft) => Promise<void> }) {
